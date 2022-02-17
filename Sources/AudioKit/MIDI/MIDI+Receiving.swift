@@ -272,16 +272,19 @@ extension MIDI {
 
     /// Parsing UMP Messages
     @available(iOS 14.0, macOS 11.0, *)
-    private func processUMPMessages(_ midiEventPacket: MIDIEventList.UnsafeSequence.Element) -> [MIDIEvent] {
+    // private func processUMPMessages(_ midiEventPacket: MIDIEventList.UnsafeSequence.Element) -> [MIDIEvent] {
+    private func processUMPMessages(_ midiEventPacket: UnsafePointer<MIDIPacket>) -> [MIDIEvent] {
         // Collection of UInt32 words
-        let words = MIDIEventPacket.WordCollection(midiEventPacket)
+        // let words = MIDIEventPacket.WordCollection(midiEventPacket)
+        let words:[UInt32] = [1, 2, 3]
         let timeStamp = midiEventPacket.pointee.timeStamp
         var midiEvents = [MIDIEvent]()
         var wordIndex = 0
         
         // Iterating through valid words in collection.
         // Using wordCount, because MIDIEventPacket will contain garbage data after wordCount.
-        while (wordIndex < midiEventPacket.pointee.wordCount) {
+        while (wordIndex < 3) {
+        // while (wordIndex < midiEventPacket.pointee.wordCount) {
             let word = words[wordIndex]
             
             // Parsing UMP words
@@ -326,7 +329,8 @@ extension MIDI {
             default:
                 // We should not get there, because of the guard at the top
                 Log("Received undefined UMP Message type", log: OSLog.midi)
-                wordIndex = Int(midiEventPacket.pointee.wordCount) // data probably corrupted, skipping rest of the packet, exiting while loop
+                // wordIndex = Int(midiEventPacket.pointee.wordCount) // data probably corrupted, skipping rest of the packet, exiting while loop
+                wordIndex = Int(3) // data probably corrupted, skipping rest of the packet, exiting while loop
                 break
             }
         }
@@ -353,23 +357,23 @@ extension MIDI {
                     // Using MIDIInputPortCreateWithProtocol on iOS 14+
                     if #available(iOS 14.0, macOS 11.0, *) {
                         // Hardcoded MIDI protocol version 1.0 here, consider to have an option somewhere
-                        inputPortCreationResult = MIDIInputPortCreateWithProtocol(client, inputPortName, ._1_0, &port) { eventPacketList, _ in
-
-                            guard (eventPacketList.pointee.protocol == ._1_0) else {
-                                Log("Got unsupported MIDI 2.0 MIDIEventList, skipping", log: OSLog.midi)
-                                return
-                            }
-
-                            for midiEventPacket in eventPacketList.unsafeSequence() {
-
-                                let midiEvents = self.processUMPMessages(midiEventPacket)
-                                let transformedMIDIEventList = self.transformMIDIEventList(midiEvents)
-                                for transformedEvent in transformedMIDIEventList where transformedEvent.status != nil
-                                    || transformedEvent.command != nil {
-                                    self.handleMIDIMessage(transformedEvent, fromInput: inputUID)
-                                }
-                            }
-                        }
+//                        inputPortCreationResult = MIDIInputPortCreateWithProtocol(client, inputPortName, ._1_0, &port) { eventPacketList, _ in
+//
+//                            guard (eventPacketList.pointee.protocol == ._1_0) else {
+//                                Log("Got unsupported MIDI 2.0 MIDIEventList, skipping", log: OSLog.midi)
+//                                return
+//                            }
+//
+//                            for midiEventPacket in eventPacketList.unsafeSequence() {
+//
+//                                let midiEvents = self.processUMPMessages(midiEventPacket)
+//                                let transformedMIDIEventList = self.transformMIDIEventList(midiEvents)
+//                                for transformedEvent in transformedMIDIEventList where transformedEvent.status != nil
+//                                    || transformedEvent.command != nil {
+//                                    self.handleMIDIMessage(transformedEvent, fromInput: inputUID)
+//                                }
+//                            }
+//                        }
                     } else {
                         // Using MIDIInputPortCreateWithBlock on iOS 9 - 13
                         inputPortCreationResult = MIDIInputPortCreateWithBlock(client, inputPortName, &port) { packetList, _ in

@@ -86,7 +86,8 @@ public class MIDIPlayer: AVAudioSequencer {
     /// - parameter loopLength: Loop length in beats
     ///
     public func enableLooping(_ loopLength: Duration) {
-        for track in self {
+        
+        for track in self.tracks {
             track.isLoopingEnabled = true
             track.loopRange = AVMakeBeatRange(0, loopLength.beats)
         }
@@ -95,7 +96,7 @@ public class MIDIPlayer: AVAudioSequencer {
 
     /// Disable looping for all tracks
     public func disableLooping() {
-        for track in self { track.isLoopingEnabled = false }
+        for track in self.tracks { track.isLoopingEnabled = false }
         loopEnabled = false
     }
 
@@ -106,7 +107,7 @@ public class MIDIPlayer: AVAudioSequencer {
             return Duration(beats: l, tempo: tempo)
         }
         set {
-            for track in self {
+            for track in self.tracks {
                 track.lengthInBeats = newValue.beats
                 track.loopRange = AVMakeBeatRange(0, newValue.beats)
             }
@@ -124,7 +125,7 @@ public class MIDIPlayer: AVAudioSequencer {
 
     /// Set the Audio Unit output for all tracks - on hold while technology is still unstable
     public func setGlobalAVAudioUnitOutput(_ audioUnit: AVAudioUnit) {
-        for track in self { track.destinationAudioUnit = audioUnit }
+        for track in self.tracks { track.destinationAudioUnit = audioUnit }
     }
 
     /// Current Time
@@ -155,7 +156,7 @@ public class MIDIPlayer: AVAudioSequencer {
     /// Set the midi output for all tracks
     /// - Parameter midiEndpoint: MIDI Endpoint
     public func setGlobalMIDIOutput(_ midiEndpoint: MIDIEndpointRef) {
-        for track in self { track.destinationMIDIEndpoint = midiEndpoint }
+        for track in self.tracks { track.destinationMIDIEndpoint = midiEndpoint }
     }
 }
 #endif
